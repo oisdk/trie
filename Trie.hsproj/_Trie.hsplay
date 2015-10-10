@@ -3,4 +3,3 @@ let t = fromList ["hello", "my", "name"]
 
 subs "e" t
 
-fromMaybe 1 (Just 2)

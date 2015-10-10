@@ -2,6 +2,8 @@ import qualified Data.Map.Strict as M
 import qualified Data.List as L
 import Control.Applicative
 import Data.Maybe
+import System.Environment
+import Control.Monad
 
 data Trie a = Trie { children :: M.Map a (Trie a), end :: Bool }
 
@@ -10,7 +12,7 @@ tEmpty = Trie M.empty False
 insert :: Ord a => [a] -> Trie a -> Trie a
 insert []     (Trie m e) = Trie m True
 insert (x:xs) (Trie m e) = Trie (M.alter (Just . insert xs . fromMaybe tEmpty) x m) e
-        
+
 contains :: Ord a => [a] -> Trie a -> Bool
 contains []     = end
 contains (x:xs) = fromMaybe False   . 
@@ -38,3 +40,23 @@ complete (x:xs) = fromMaybe []                     .
                 
 subs :: Ord a => [a] -> Trie a -> [[a]]
 subs x t@(Trie m _) = (complete x t) ++ (M.toList m >>= prepResult (subs x))
+
+fromString :: String -> Trie Char
+fromString = fromList . words
+
+fromIn :: () -> IO (Trie Char)
+fromIn () = fromList    . 
+            words     <$> 
+            (readFile =<< 
+            head      <$> 
+            getArgs     )
+
+
+main = do
+  trie <- fromIn ()
+  line <- getLine
+  unless (line == "q") $ do
+    forM (subs line trie) putStrLn
+    main
+  
+
